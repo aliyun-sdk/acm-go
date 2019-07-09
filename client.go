@@ -1,4 +1,4 @@
-package aliacm
+package acm
 
 import (
 	"fmt"
@@ -19,13 +19,13 @@ func init() {
 	rand.Seed(time.Now().UnixNano())
 }
 
-// Aliacm ACM客户端
-type Aliacm struct {
+// Client ACM客户端
+type Client struct {
 	options Options
 	servers []server
 }
 
-func (a *Aliacm) Read(dataId string) ([]byte, error) {
+func (a *Client) Read(dataId string) ([]byte, error) {
 	url := a.buildUrl(getConfig) +
 		"?tenant=" + a.options.namespace +
 		"&dataId=" + dataId +
@@ -37,7 +37,7 @@ func (a *Aliacm) Read(dataId string) ([]byte, error) {
 	return a.doRequest(req)
 }
 
-func (a *Aliacm) Write(dataId string, content []byte) error {
+func (a *Client) Write(dataId string, content []byte) error {
 	arg := fmt.Sprintf(
 		"tenant=%s&dataId=%s&group=%s&content=%s",
 		a.options.namespace, dataId,
@@ -52,12 +52,12 @@ func (a *Aliacm) Write(dataId string, content []byte) error {
 	if err != nil {
 		return err
 	} else if string(res[:2]) != "OK" {
-		return fmt.Errorf("aliacm: write config failed, response = %v", res)
+		return fmt.Errorf("acm client: write config failed, response = %v", res)
 	}
 	return nil
 }
 
-func (a *Aliacm) Remove(dataId string) error {
+func (a *Client) Remove(dataId string) error {
 	arg := fmt.Sprintf(
 		"tenant=%s&dataId=%s&group=%s",
 		a.options.namespace, dataId, a.options.groupName,
@@ -71,12 +71,12 @@ func (a *Aliacm) Remove(dataId string) error {
 	if err != nil {
 		return err
 	} else if string(res[:2]) != "OK" {
-		return fmt.Errorf("aliacm: remove config failed, response = %s", res)
+		return fmt.Errorf("acm client: remove config failed, response = %s", res)
 	}
 	return nil
 }
 
-func (a *Aliacm) Watch(dataId string, content []byte) ([]byte, error) {
+func (a *Client) Watch(dataId string, content []byte) ([]byte, error) {
 	url := a.buildUrl(getConfig)
 	arg := strings.Join([]string{dataId, a.options.groupName, contentMd5(content), a.options.namespace}, wordSeparator)
 	req, err := http.NewRequest("POST", url, strings.NewReader("Probe-Modify-Request="+arg+lineSeparator))
@@ -87,12 +87,12 @@ func (a *Aliacm) Watch(dataId string, content []byte) ([]byte, error) {
 	return a.doRequest(req)
 }
 
-func (a *Aliacm) buildUrl(path apiPath) string {
+func (a *Client) buildUrl(path apiPath) string {
 	idx := rand.Intn(len(a.servers))
 	return path.URL(a.servers[idx].host, a.servers[idx].port)
 }
 
-func (a *Aliacm) doRequest(r *http.Request) ([]byte, error) {
+func (a *Client) doRequest(r *http.Request) ([]byte, error) {
 	err := a.addHeader(r)
 	if err != nil {
 		return nil, err
@@ -107,12 +107,12 @@ func (a *Aliacm) doRequest(r *http.Request) ([]byte, error) {
 		return nil, err
 	}
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("aliacm: response error, code = %d, message = %s", resp.StatusCode, body)
+		return nil, fmt.Errorf("acm client: response error, code = %d, message = %s", resp.StatusCode, body)
 	}
 	return body, nil
 }
 
-func (a *Aliacm) addHeader(r *http.Request) error {
+func (a *Client) addHeader(r *http.Request) error {
 	mtime := strconv.FormatInt(time.Now().Unix()*1000, 10)
 	sign, err := genSign(
 		fmt.Sprintf("%s+%s+%s", a.options.namespace, a.options.groupName, mtime),
@@ -130,14 +130,14 @@ func (a *Aliacm) addHeader(r *http.Request) error {
 	return nil
 }
 
-func New(fns ...Option) *Aliacm {
-	a := &Aliacm{
+func New(fns ...Option) *Client {
+	a := &Client{
 		options: newOptions(fns),
 	}
 	// 通过Endpoint查询服务IP列表, 以便后面能够通过IP发起请求
 	url := getServer.URL(a.options.endpoint, 8080)
 	if body, err := httpGet(url); err != nil {
-		panic(fmt.Sprintf("aliacm: get server list failed, err = %v", err))
+		panic(fmt.Sprintf("acm client: get server list failed, err = %v", err))
 	} else {
 		servers := strings.Split(string(body), "\n")
 		for _, server := range servers {

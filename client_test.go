@@ -1,4 +1,4 @@
-package aliacm
+package acm
 
 import (
 	"bytes"
@@ -24,7 +24,7 @@ var dbCfg = map[string]interface{}{
 	"dbname": "test",
 }
 
-func TestAliacm(t *testing.T) {
+func TestClient(t *testing.T) {
 	dataId := "test.test"
 	content, _ := json.Marshal(dbCfg)
 	err := cli.Write(dataId, content)
