@@ -2,7 +2,7 @@
 The [Aliyun ACM](https://www.aliyun.com/product/acm) SDK In Golang
 
 ## Installation
-`go get github.com/aliyun-sdk/acm`
+`go get github.com/aliyun-sdk/acm-go`
 
 ## Usage
 
