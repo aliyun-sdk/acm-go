@@ -1,5 +1,5 @@
 ## Acm-go
-The [Aliyun ACM](https://www.aliyun.com/product/acm) Client In Golang
+The [Aliyun ACM](https://www.aliyun.com/product/acm) SDK In Golang
 
 ## Installation
 `go get github.com/aliyun-sdk/acm-go`
