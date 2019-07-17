@@ -8,13 +8,13 @@ import (
 	"time"
 )
 
-var ns = "f1191eb8-7117-41d7-9414-3a1f181f898b"
+var ns = "您的命名空间"
 var gn = "DEFAULT_GROUP"
 var cli = New(
 	Namespace(ns),
 	GroupName(gn),
 	Endpoint("acm.aliyun.com"),
-	AuthCreds("4502e69881314b0a88b050e55c08bb3d", "5bsoKAX8WKBC8KiZf4FGS4c6Plo="),
+	AuthCreds("您的ACCESS KEY", "您的SECRET KEY"),
 )
 
 var dbCfg = map[string]interface{}{
