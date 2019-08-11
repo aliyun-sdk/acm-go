@@ -76,15 +76,20 @@ func (a *Client) Remove(dataId string) error {
 	return nil
 }
 
-func (a *Client) Watch(dataId string, content []byte) ([]byte, error) {
+func (a *Client) Watch(dataId string, content []byte) (bool, error) {
 	url := a.buildUrl(getConfig)
 	arg := strings.Join([]string{dataId, a.options.groupName, contentMd5(content), a.options.namespace}, wordSeparator)
 	req, err := http.NewRequest("POST", url, strings.NewReader("Probe-Modify-Request="+arg+lineSeparator))
 	if err != nil {
-		return nil, err
+		return false, err
 	}
 	req.Header.Set("longPullingTimeout", "30000")
-	return a.doRequest(req)
+	if res, err := a.doRequest(req); err != nil {
+		return false, err
+	} else if string(res) == "" {
+		return false, nil
+	}
+	return true, nil
 }
 
 func (a *Client) buildUrl(path apiPath) string {

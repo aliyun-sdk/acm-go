@@ -3,19 +3,21 @@ package acm
 import (
 	"bytes"
 	"encoding/json"
-	"strings"
+	"flag"
 	"testing"
 	"time"
 )
 
-var ns = "您的命名空间"
-var gn = "DEFAULT_GROUP"
-var cli = New(
-	Namespace(ns),
-	GroupName(gn),
-	Endpoint("acm.aliyun.com"),
-	AuthCreds("您的ACCESS KEY", "您的SECRET KEY"),
-)
+var cli *Client
+var ns, ak, sk string
+
+func init() {
+	flag.StringVar(&ns, "namespace", "", "您的命名空间")
+	flag.StringVar(&ak, "access_key", "", "您的ACCESS KEY")
+	flag.StringVar(&sk, "secret_key", "", "您的SECRET KEY")
+	flag.Parse()
+	cli = New(Namespace(ns), Endpoint("acm.aliyun.com"), AuthCreds(ak, sk))
+}
 
 var dbCfg = map[string]interface{}{
 	"host":   "192.168.1.1",
@@ -48,12 +50,11 @@ func TestClient(t *testing.T) {
 	go func() {
 		startSignal <- struct{}{}
 
-		change, err := cli.Watch(dataId, content)
-		expect := strings.Join([]string{dataId, gn, ns}, wordSeparator) + lineSeparator + "\n"
+		changed, err := cli.Watch(dataId, content)
 		if err != nil {
 			t.Error(err)
-		} else if string(change) != expect {
-			t.Errorf("unexpected result, expect = %s, but = %s", expect, change)
+		} else if changed == false {
+			t.Errorf("unexpected result, expect = %v, but = %v", true, false)
 		}
 
 		finishSignal <- struct{}{}
